@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright (c) 2013-2014 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
 
 http://www.cocos2d-x.org
 
@@ -143,11 +143,12 @@ static const char *CONTENT_SCALE = "content_scale";
 
 static std::string readFileContent(const std::string& filename, bool binary) {
     auto fs = FileUtils::getInstance();
-    if (binary) {
-        Data data(fs->getDataFromFile(filename));
-        return std::string((const char*)data.getBytes(), data.getSize());
-    }
-    return fs->getStringFromFile(filename);
+    std::string s;
+    if (binary)
+        fs->getContents(filename, &s);
+    else
+        s = fs->getStringFromFile(filename);
+    return s;
 };
 
 namespace cocostudio {

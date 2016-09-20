@@ -1,6 +1,6 @@
 /****************************************************************************
  Copyright (c) 2010-2012 cocos2d-x.org
- Copyright (c) 2013-2014 Chukong Technologies Inc.
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -570,13 +570,10 @@ void WebSocket::onSubThreadStarted()
         {
             "permessage-deflate",
             lws_extension_callback_pm_deflate,
-            // iOS doesn't support client_no_context_takeover extension in the current version, it will cause iOS connection fail
-            // It may be a bug of lib websocket iOS build
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+            // client_no_context_takeover extension is not supported in the current version, it will cause connection fail
+            // It may be a bug of lib websocket build
+//            "permessage-deflate; client_no_context_takeover; client_max_window_bits"
             "permessage-deflate; client_max_window_bits"
-#else 
-            "permessage-deflate; client_no_context_takeover; client_max_window_bits"
-#endif
         },
         {
             "deflate-frame",
@@ -598,7 +595,15 @@ void WebSocket::onSubThreadStarted()
 
     info.port = CONTEXT_PORT_NO_LISTEN;
     info.protocols = _wsProtocols;
-    info.extensions = exts;
+    
+    // FIXME: Disable 'permessage-deflate' extension temporarily because of issues:
+    // https://github.com/cocos2d/cocos2d-x/issues/16045, https://github.com/cocos2d/cocos2d-x/issues/15767
+    // libwebsockets issue: https://github.com/warmcat/libwebsockets/issues/593
+    // Currently, we couldn't find out the exact reason.
+    // libwebsockets official said it's probably an issue of user code
+    // since 'libwebsockets' passed AutoBahn stressed Test.
+
+//    info.extensions = exts;
 
     info.gid = -1;
     info.uid = -1;
@@ -668,10 +673,10 @@ void WebSocket::onClientWritable()
         WsMessage* subThreadMsg = *iter;
         Data* data = (Data*)subThreadMsg->obj;
 
-        const size_t c_bufferSize = WS_RX_BUFFER_SIZE;
+        const ssize_t c_bufferSize = WS_RX_BUFFER_SIZE;
 
-        const size_t remaining = data->len - data->issued;
-        const size_t n = std::min(remaining, c_bufferSize );
+        const ssize_t remaining = data->len - data->issued;
+        const ssize_t n = std::min(remaining, c_bufferSize);
 
         WebSocketFrame* frame = nullptr;
 
@@ -797,7 +802,7 @@ void WebSocket::onClientReceivedData(void* in, ssize_t len)
     }
     else
     {
-        LOGD("Emtpy message received, index=%d!\n", packageIndex);
+        LOGD("Empty message received, index=%d!\n", packageIndex);
     }
 
     // If no more data pending, send it to the client thread
@@ -814,7 +819,7 @@ void WebSocket::onClientReceivedData(void* in, ssize_t len)
 
         ssize_t frameSize = frameData->size();
 
-        bool isBinary = lws_frame_is_binary(_wsInstance);
+        bool isBinary = (lws_frame_is_binary(_wsInstance) != 0);
 
         if (!isBinary)
         {

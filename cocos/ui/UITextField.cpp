@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright (c) 2013-2014 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
 
 http://www.cocos2d-x.org
 
@@ -86,7 +86,7 @@ bool UICCTextField::onTextFieldInsertText(TextFieldTTF *pSender, const char *tex
     setInsertText(true);
     if (_maxLengthEnabled)
     {
-        if (TextFieldTTF::getCharCount() >= _maxLength)
+        if (static_cast<int>(TextFieldTTF::getCharCount()) >= _maxLength)
         {
             return true;
         }
@@ -402,16 +402,15 @@ void TextField::setString(const std::string& text)
         }
     }
     
-    const char* content = strText.c_str();
     if (isPasswordEnabled())
     {
-        _textFieldRenderer->setPasswordText(content);
+        _textFieldRenderer->setPasswordText(strText);
         _textFieldRenderer->setString("");
-        _textFieldRenderer->insertText(content, strlen(content));
+        _textFieldRenderer->insertText(strText.c_str(), strText.size());
     }
     else
     {
-        _textFieldRenderer->setString(content);
+        _textFieldRenderer->setString(strText);
     }
     _textFieldRendererAdaptDirty = true;
     updateContentSizeWithTextureSize(_textFieldRenderer->getContentSize());
@@ -728,10 +727,10 @@ void TextField::deleteBackwardEvent()
     this->release();
 }
 
-void TextField::addEventListenerTextField(Ref *target, SEL_TextFieldEvent selecor)
+void TextField::addEventListenerTextField(Ref *target, SEL_TextFieldEvent selector)
 {
     _textFieldEventListener = target;
-    _textFieldEventSelector = selecor;
+    _textFieldEventSelector = selector;
 }
     
 void TextField::addEventListener(const ccTextFieldCallback& callback)

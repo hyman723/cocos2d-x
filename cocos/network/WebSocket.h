@@ -1,6 +1,6 @@
 /****************************************************************************
  Copyright (c) 2010-2012 cocos2d-x.org
- Copyright (c) 2013-2014 Chukong Technologies Inc.
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -200,7 +200,7 @@ public:
      *  @brief Closes the connection to server asynchronously.
      *  @note It's an asynchronous method, it just notifies websocket thread to exit and returns directly,
      *        If using 'closeAsync' to close websocket connection, 
-     *        be carefull of not using destructed variables in the callback of 'onClose'.
+     *        be careful of not using destructed variables in the callback of 'onClose'.
      */
     void closeAsync();
 

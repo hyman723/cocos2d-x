@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2012      greathqy
  Copyright (c) 2012      cocos2d-x.org
- Copyright (c) 2013-2014 Chukong Technologies Inc.
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
  
  http://www.cocos2d-x.org
  
@@ -383,7 +383,7 @@ public:
         return header;
     }
     
-    const std::string getCookieFileName()
+    const std::string& getCookieFileName() const
     {
         return _cookieFileName;
     }
@@ -399,7 +399,7 @@ public:
     }
     
 private:
-    void createHttpURLConnection(std::string url)
+    void createHttpURLConnection(const std::string& url)
     {
         JniMethodInfo methodInfo;
         if (JniHelper::getStaticMethodInfo(methodInfo,
@@ -608,7 +608,7 @@ private:
         return len;
     }
 
-    const std::string getCookieString()
+    const std::string& getCookieString() const
     {
         return _responseCookies;
     }
@@ -892,7 +892,7 @@ HttpClient::HttpClient()
 HttpClient::~HttpClient()
 {
     CCLOG("In the destructor of HttpClient!");
-    CC_SAFE_DELETE(_requestSentinel);
+    CC_SAFE_RELEASE(_requestSentinel);
 }
 
 //Lazy create semaphore & mutex & thread

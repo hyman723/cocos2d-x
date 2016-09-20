@@ -83,7 +83,7 @@ namespace cocostudio
                 percent = valueToInt(value);
             }else if(key == P_BarFileNameData){
                 stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
-                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);
                 
                 Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
                 
@@ -95,7 +95,7 @@ namespace cocostudio
                 barLength = valueToFloat(value);
             }else if(key == P_BallNormalData){
                 stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
-                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);
                 
                 Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
                 
@@ -105,7 +105,7 @@ namespace cocostudio
 
             }else if(key == P_BallPressedData){
                 stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
-                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);
                 
                 Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
                 
@@ -115,7 +115,7 @@ namespace cocostudio
                 
             }else if(key == P_BallDisabledData){
                 stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
-                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);
                 
                 Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
                 
@@ -125,7 +125,7 @@ namespace cocostudio
                 
             }else if(key == P_ProgressBarData){
                 stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
-                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);
                 
                 Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
                 
@@ -484,6 +484,11 @@ namespace cocostudio
                 {
                     imageFileExist = true;
                 }
+                else if(SpriteFrameCache::getInstance()->getSpriteFrameByName(imageFileName))
+                {
+                    imageFileExist = true;
+                    imageFileNameType = 1;
+                }
                 else
                 {
                     imageErrorFilePath = imageFileName;
@@ -548,6 +553,11 @@ namespace cocostudio
                 if (FileUtils::getInstance()->isFileExist(normalFileName))
                 {
                     normalFileExist = true;
+                }
+                else if(SpriteFrameCache::getInstance()->getSpriteFrameByName(normalFileName))
+                {
+                    normalFileExist = true;
+                    normalType = 1;
                 }
                 else
                 {
@@ -614,6 +624,11 @@ namespace cocostudio
                 {
                     pressedFileExist = true;
                 }
+                else if(SpriteFrameCache::getInstance()->getSpriteFrameByName(pressedFileName))
+                {
+                    pressedFileExist = true;
+                    pressedType = 1;
+                }
                 else
                 {
                     pressedErrorFilePath = pressedFileName;
@@ -679,6 +694,11 @@ namespace cocostudio
                 {
                     disabledFileExist = true;
                 }
+                else if(SpriteFrameCache::getInstance()->getSpriteFrameByName(disabledFileName))
+                {
+                    disabledFileExist = true;
+                    disabledType = 1;
+                }
                 else
                 {
                     disabledErrorFilePath = disabledFileName;
@@ -743,6 +763,11 @@ namespace cocostudio
                 if (FileUtils::getInstance()->isFileExist(progressBarFileName))
                 {
                     progressFileExist = true;
+                }
+                else if(SpriteFrameCache::getInstance()->getSpriteFrameByName(progressBarFileName))
+                {
+                    progressFileExist = true;
+                    progressBarType = 1;
                 }
                 else
                 {

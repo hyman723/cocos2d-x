@@ -294,7 +294,7 @@ Terrain::Terrain()
 #endif
 }
 
-void Terrain::setChunksLOD(Vec3 cameraPos)
+void Terrain::setChunksLOD(const Vec3& cameraPos)
 {
     int chunk_amount_y = _imageHeight/_chunkSize.height;
     int chunk_amount_x = _imageWidth/_chunkSize.width;
@@ -369,9 +369,9 @@ float Terrain::getHeight(float x, float z, Vec3 * normal) const
     }
 }
 
-float Terrain::getHeight(Vec2 pos, Vec3*Normal) const
+float Terrain::getHeight(const Vec2& pos, Vec3* normal) const
 {
-    return getHeight(pos.x,pos.y,Normal);
+    return getHeight(pos.x, pos.y, normal);
 }
 
 float Terrain::getImageHeight(int pixel_x,int pixel_y) const
@@ -606,7 +606,7 @@ void Terrain::setMaxDetailMapAmount(int max_value)
     _maxDetailMapValue = max_value;
 }
 
-cocos2d::Vec2 Terrain::convertToTerrainSpace(Vec2 worldSpaceXZ) const
+cocos2d::Vec2 Terrain::convertToTerrainSpace(const Vec2& worldSpaceXZ) const
 {
     Vec2 pos(worldSpaceXZ.x,worldSpaceXZ.y);
 
@@ -1357,7 +1357,7 @@ void Terrain::Chunk::updateVerticesForLOD()
     int gridY = _size.height;
     int gridX = _size.width;
 
-    if(_currentLod>=2 && std::abs(_slope)>1.2)
+    if (_currentLod >= 2 && std::abs(_slope) > 1.2f)
     {
         int step = 1<<_currentLod;
         for(int i =step;i<gridY-step;i+=step)
@@ -1638,14 +1638,14 @@ Terrain::DetailMap::DetailMap()
     _detailMapSize = 35;
 }
 
-Terrain::Triangle::Triangle(Vec3 p1, Vec3 p2, Vec3 p3)
+Terrain::Triangle::Triangle(const Vec3& p1, const Vec3& p2, const Vec3& p3)
 {
     _p1 = p1;
     _p2 = p2;
     _p3 = p3;
 }
 
-void Terrain::Triangle::transform(cocos2d::Mat4 matrix)
+void Terrain::Triangle::transform(const cocos2d::Mat4& matrix)
 {
     matrix.transformPoint(&_p1);
     matrix.transformPoint(&_p2);

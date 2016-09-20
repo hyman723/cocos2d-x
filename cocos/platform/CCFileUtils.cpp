@@ -1,6 +1,6 @@
 /****************************************************************************
 Copyright (c) 2010-2013 cocos2d-x.org
-Copyright (c) 2013-2014 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
 
 http://www.cocos2d-x.org
 
@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "base/ccMacros.h"
 #include "base/CCDirector.h"
 #include "platform/CCSAXParser.h"
-#include "base/ccUtils.h"
+//#include "base/ccUtils.h"
 
 #include "tinyxml2.h"
 #ifdef MINIZIP_FROM_SYSTEM
@@ -274,7 +274,7 @@ public:
                 else if (sName == "integer")
                     _curArray->push_back(Value(atoi(_curValue.c_str())));
                 else
-                    _curArray->push_back(Value(utils::atof(_curValue.c_str())));
+                    _curArray->push_back(Value(std::atof(_curValue.c_str())));
             }
             else if (SAX_DICT == curState)
             {
@@ -283,7 +283,7 @@ public:
                 else if (sName == "integer")
                     (*_curDict)[_curKey] = Value(atoi(_curValue.c_str()));
                 else
-                    (*_curDict)[_curKey] = Value(utils::atof(_curValue.c_str()));
+                    (*_curDict)[_curKey] = Value(std::atof(_curValue.c_str()));
             }
 
             _curValue.clear();
@@ -610,109 +610,72 @@ void FileUtils::purgeCachedEntries()
     _fullPathCache.clear();
 }
 
-static Data getData(const std::string& filename, bool forString)
-{
-    if (filename.empty())
-    {
-        return Data::Null;
-    }
-
-    Data ret;
-    unsigned char* buffer = nullptr;
-    size_t size = 0;
-    size_t readsize;
-    const char* mode = nullptr;
-
-    if (forString)
-        mode = "rt";
-    else
-        mode = "rb";
-
-    auto fileutils = FileUtils::getInstance();
-    do
-    {
-        // Read the file from hardware
-        std::string fullPath = fileutils->fullPathForFilename(filename);
-        FILE *fp = fopen(fileutils->getSuitableFOpen(fullPath).c_str(), mode);
-        CC_BREAK_IF(!fp);
-        fseek(fp,0,SEEK_END);
-        size = ftell(fp);
-        fseek(fp,0,SEEK_SET);
-
-        if (forString)
-        {
-            buffer = (unsigned char*)malloc(sizeof(unsigned char) * (size + 1));
-            buffer[size] = '\0';
-        }
-        else
-        {
-            buffer = (unsigned char*)malloc(sizeof(unsigned char) * size);
-        }
-
-        readsize = fread(buffer, sizeof(unsigned char), size, fp);
-        fclose(fp);
-
-        if (forString && readsize < size)
-        {
-            buffer[readsize] = '\0';
-        }
-    } while (0);
-
-    if (nullptr == buffer || 0 == readsize)
-    {
-        CCLOG("Get data from file %s failed", filename.c_str());
-    }
-    else
-    {
-        ret.fastSet(buffer, readsize);
-    }
-
-    return ret;
-}
-
 std::string FileUtils::getStringFromFile(const std::string& filename)
 {
-    Data data = getData(filename, true);
-    if (data.isNull())
-        return "";
-
-    std::string ret((const char*)data.getBytes());
-    return ret;
+    std::string s;
+    getContents(filename, &s);
+    return s;
 }
 
 Data FileUtils::getDataFromFile(const std::string& filename)
 {
-    return getData(filename, false);
+    Data d;
+    getContents(filename, &d);
+    return d;
+}
+
+
+FileUtils::Status FileUtils::getContents(const std::string& filename, ResizableBuffer* buffer)
+{
+    if (filename.empty())
+        return Status::NotExists;
+
+    auto fs = FileUtils::getInstance();
+
+    std::string fullPath = fs->fullPathForFilename(filename);
+    if (fullPath.empty())
+        return Status::NotExists;
+
+    FILE *fp = fopen(fs->getSuitableFOpen(fullPath).c_str(), "rb");
+    if (!fp)
+        return Status::OpenFailed;
+
+#if defined(_MSC_VER)
+    auto descriptor = _fileno(fp);
+#else
+    auto descriptor = fileno(fp);
+#endif
+    struct stat statBuf;
+    if (fstat(descriptor, &statBuf) == -1) {
+        fclose(fp);
+        return Status::ReadFailed;
+    }
+    size_t size = statBuf.st_size;
+
+    buffer->resize(size);
+    size_t readsize = fread(buffer->buffer(), 1, size, fp);
+    fclose(fp);
+
+    if (readsize < size) {
+        buffer->resize(readsize);
+        return Status::ReadFailed;
+    }
+
+    return Status::OK;
 }
 
 unsigned char* FileUtils::getFileData(const std::string& filename, const char* mode, ssize_t *size)
 {
-    unsigned char * buffer = nullptr;
     CCASSERT(!filename.empty() && size != nullptr && mode != nullptr, "Invalid parameters.");
-    *size = 0;
-    do
-    {
-        // read the file from hardware
-        const std::string fullPath = fullPathForFilename(filename);
-        FILE *fp = fopen(getSuitableFOpen(fullPath).c_str(), mode);
-        CC_BREAK_IF(!fp);
+    (void)(mode); // mode is unused, as we do not support text mode any more...
 
-        fseek(fp,0,SEEK_END);
-        *size = ftell(fp);
-        fseek(fp,0,SEEK_SET);
-        buffer = (unsigned char*)malloc(*size);
-        *size = fread(buffer,sizeof(unsigned char), *size,fp);
-        fclose(fp);
-    } while (0);
-
-    if (!buffer)
-    {
-        std::string msg = "Get data from file(";
-        msg.append(filename).append(") failed!");
-
-        CCLOG("%s", msg.c_str());
+    Data d;
+    if (getContents(filename, &d) != Status::OK) {
+        *size = 0;
+        return nullptr;
     }
-    return buffer;
+
+    return d.takeBuffer(size);
 }
 
 unsigned char* FileUtils::getFileDataFromZip(const std::string& zipFilePath, const std::string& filename, ssize_t *size)
@@ -1049,7 +1012,7 @@ bool FileUtils::isDirectoryExist(const std::string& dirPath) const
         for (const auto& resolutionIt : _searchResolutionsOrderArray)
         {
             // searchPath + file_path + resourceDirectory
-            fullpath = searchIt + dirPath + resolutionIt;
+            fullpath = fullPathForFilename(searchIt + dirPath + resolutionIt);
             if (isDirectoryExistInternal(fullpath))
             {
                 _fullPathCache.insert(std::make_pair(dirPath, fullpath));
@@ -1191,24 +1154,12 @@ bool FileUtils::createDirectory(const std::string& path)
 
 bool FileUtils::removeDirectory(const std::string& path)
 {
-    // FIXME: Why using subclassing? an interface probably will be better
-    // to support different OS
-    // FileUtils::removeDirectory is subclassed on iOS/tvOS
-    // and system() is not available on tvOS
-#if !defined(CC_PLATFORM_IOS)
-    if (path.size() > 0 && path[path.size() - 1] != '/')
-    {
-        CCLOGERROR("Fail to remove directory, path must terminate with '/': %s", path.c_str());
-        return false;
-    }
-
     std::string command = "rm -r ";
     // Path may include space.
     command += "\"" + path + "\"";
     if (system(command.c_str()) >= 0)
         return true;
     else
-#endif
         return false;
 }
 
@@ -1307,6 +1258,14 @@ std::string FileUtils::getFileExtension(const std::string& filePath) const
     }
 
     return fileExtension;
+}
+
+void FileUtils::valueMapCompact(ValueMap& valueMap)
+{
+}
+
+void FileUtils::valueVectorCompact(ValueVector& valueVector)
+{
 }
 
 NS_CC_END

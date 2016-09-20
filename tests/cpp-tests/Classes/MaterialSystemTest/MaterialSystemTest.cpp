@@ -1,6 +1,6 @@
 /****************************************************************************
  Copyright (c) 2012 cocos2d-x.org
- Copyright (c) 2013-2014 Chukong Technologies Inc.
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -422,7 +422,7 @@ void Material_parsePerformance::parsingTesting(unsigned int count)
 {
     std::clock_t begin = std::clock();
     
-    for(int i=0;i<count;i++)
+    for (unsigned int i = 0; i < count; i++)
     {
         Material::createWithFilename("Materials/2d_effects.material");
         Material::createWithFilename("Materials/3d_effects.material");
@@ -464,7 +464,7 @@ void Material_invalidate::onEnter()
     sprite->runAction(repeat);
 
     // SPINE
-    auto skeletonNode = spine::SkeletonAnimation::createWithFile("spine/goblins-ffd.json", "spine/goblins-ffd.atlas", 1.5f);
+    auto skeletonNode = spine::SkeletonAnimation::createWithFile("spine/goblins.json", "spine/goblins.atlas", 1.5f);
     skeletonNode->setAnimation(0, "walk", true);
     skeletonNode->setSkin("goblin");
 
@@ -533,7 +533,7 @@ void Material_renderState::onEnter()
     sprite->runAction(repeat);
 
     // SPINE
-    auto skeletonNode = spine::SkeletonAnimation::createWithFile("spine/goblins-ffd.json", "spine/goblins-ffd.atlas", 1.5f);
+    auto skeletonNode = spine::SkeletonAnimation::createWithFile("spine/goblins.json", "spine/goblins.atlas", 1.5f);
     skeletonNode->setAnimation(0, "walk", true);
     skeletonNode->setSkin("goblin");
 

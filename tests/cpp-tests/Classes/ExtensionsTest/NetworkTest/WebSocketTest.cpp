@@ -260,7 +260,7 @@ void WebSocketTest::onMenuSendBinaryClicked(cocos2d::Ref *sender)
 }
 
 WebSocketCloseTest::WebSocketCloseTest()
-    : _wsiTest(nullptr)
+: _wsiTest(nullptr)
 {
     auto winSize = Director::getInstance()->getWinSize();
 
@@ -268,7 +268,8 @@ WebSocketCloseTest::WebSocketCloseTest()
 
     if (!_wsiTest->init(*this, "ws://echo.websocket.org"))
     {
-        CC_SAFE_DELETE(_wsiTest);
+        delete _wsiTest;
+        _wsiTest = nullptr;
     }
 
     auto closeItem = MenuItemImage::create(s_pathClose, s_pathClose, [](Ref* sender){
@@ -289,6 +290,14 @@ WebSocketCloseTest::WebSocketCloseTest()
     addChild(notifyLabel, 1);
 }
 
+WebSocketCloseTest::~WebSocketCloseTest()
+{
+    if (_wsiTest != nullptr)
+    {
+        _wsiTest->close();
+    }
+}
+
 // Delegate methods
 void WebSocketCloseTest::onOpen(network::WebSocket* ws)
 {
@@ -303,6 +312,9 @@ void WebSocketCloseTest::onMessage(network::WebSocket* ws, const network::WebSoc
 void WebSocketCloseTest::onClose(network::WebSocket* ws)
 {
     log("websocket (%p) closed.", ws);
+    if (ws == _wsiTest) {
+        _wsiTest = nullptr;
+    }
     CC_SAFE_DELETE(ws);
 }
 
